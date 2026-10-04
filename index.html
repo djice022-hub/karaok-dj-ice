@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inscription Karaoké - DJICE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs Compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --purple-main: #6B1178;
+            --purple-light: #9C27B0;
+            --purple-dark: #3a0842;
+            --gold-main: #D4AF37;
+            --gold-light: #F3E5AB;
+            --bg-dark: #07030a;
+            --card-bg: rgba(22, 10, 30, 0.9);
+            --border-glow: rgba(212, 175, 55, 0.35);
+            --text-main: #ffffff;
+            --text-sub: #c9b3d8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 15px;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(156, 39, 176, 0.25) 0%, transparent 60%),
+                radial-gradient(circle at 100% 100%, rgba(107, 17, 120, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 0% 100%, rgba(212, 175, 55, 0.15) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 24px;
+            padding: 20px 20px 25px 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(107, 17, 120, 0.2);
+            backdrop-filter: blur(15px);
+            position: relative;
+            margin-top: 5px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+            padding-top: 5px;
+        }
+
+        .top-bar {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 5px;
+        }
+
+        .dj-access-btn {
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid var(--gold-main);
+            color: var(--gold-light);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .dj-access-btn:active {
+            transform: scale(0.95);
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, var(--gold-light), var(--gold-main));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-top: -5px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-top: 3px;
+            text-align: center;
+        }
+
+        .type-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .type-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: var(--text-sub);
+            padding: 12px 8px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .type-btn.active {
+            background: linear-gradient(135deg, var(--purple-main), var(--purple-light));
+            border-color: var(--gold-main);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(107, 17, 120, 0.4);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gold-light);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1.5px solid rgba(212, 175, 55, 0.25);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: #ffffff;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--gold-main);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--purple-main), var(--purple-light));
+            color: #ffffff;
+            border: 1px solid var(--gold-main);
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(107, 17, 120, 0.5);
+            margin-top: 10px;
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        .alert-success {
+            display: none;
+            background: rgba(46, 125, 50, 0.25);
+            border: 1px solid #4caf50;
+            color: #e8f5e9;
+            padding: 16px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 450px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            color: var(--gold-light);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .queue-list {
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .queue-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 12px;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-singer {
+            font-weight: 700;
+            color: var(--gold-light);
+            font-size: 14px;
+        }
+
+        .item-song {
+            font-size: 13px;
+            color: #fff;
+        }
+
+        .item-artist {
+            font-size: 11px;
+            color: var(--text-sub);
+        }
+
+        .delete-btn {
+            background: rgba(211, 47, 47, 0.2);
+            border: 1px solid #d32f2f;
+            color: #ff8a80;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .pin-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <div class="top-bar">
+                <button class="dj-access-btn" onclick="openDJModal()">⚙️ Espace DJ</button>
+            </div>
+            <h1 class="title">Inscription Karaoké</h1>
+            <p class="subtitle">Sélectionnez votre formule et envoyez votre titre</p>
+        </div>
+
+        <div id="successAlert" class="alert-success">
+            🎉 Inscription envoyée avec succès ! Préparez-vous à chanter !
+        </div>
+
+        <form id="karaokeForm" onsubmit="submitForm(event)">
+            <div class="type-selector">
+                <div class="type-btn active" onclick="selectType('Solo', this)">🎤 Solo</div>
+                <div class="type-btn" onclick="selectType('Duo', this)">👥 Duo</div>
+                <div class="type-btn" onclick="selectType('Groupe', this)">🎸 Groupe</div>
+            </div>
+
+            <div class="form-group">
+                <label id="nameLabel" for="singerName">Votre Prénom / Pseudo</label>
+                <input type="text" id="singerName" class="form-control" placeholder="Ex: Thomas" required autocomplete="off">
+            </div>
+
+            <div class="form-group" id="partnerGroup" style="display: none;">
+                <label id="partnerLabel" for="partnerName">Nom de votre partenaire</label>
+                <input type="text" id="partnerName" class="form-control" placeholder="Ex: Marie" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="songTitle">Titre de la chanson</label>
+                <input type="text" id="songTitle" class="form-control" placeholder="Ex: Les Lacs du Connemara" required autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="artistName">Artiste / Groupe</label>
+                <input type="text" id="artistName" class="form-control" placeholder="Ex: Michel Sardou" required autocomplete="off">
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">Envoyer mon inscription</button>
+        </form>
+    </div>
+
+    <!-- Modal Espace DJ -->
+    <div id="djModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎧 Espace DJ Administrateur</h2>
+                <button class="close-btn" onclick="closeDJModal()">&times;</button>
+            </div>
+
+            <div id="pinBox" class="pin-container">
+                <p style="color: var(--text-sub); margin-bottom: 15px;">Saisissez le code PIN DJ :</p>
+                <input type="password" id="pinInput" class="form-control" placeholder="Code PIN (ex: 1234)" style="text-align: center; font-size: 18px; margin-bottom: 15px;">
+                <button class="submit-btn" onclick="verifyPIN()">Valider</button>
+            </div>
+
+            <div id="djDashboard" style="display: none; height: 100%; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="font-size: 13px; color: var(--gold-light);" id="countText">0 Inscription(s)</span>
+                    <button onclick="changePIN()" style="background: none; border: none; color: var(--text-sub); font-size: 12px; cursor: pointer; text-decoration: underline;">Changer PIN</button>
+                </div>
+                <div class="queue-list" id="queueContainer">
+                    <!-- Liste des chansons -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDb5YYEHpBQXLTCL85hykAMMVh7NquWWxI",
+            authDomain: "karaoke-djice.firebaseapp.com",
+            databaseURL: "https://karaoke-djice-default-rtdb.firebaseio.com",
+            projectId: "karaoke-djice",
+            storageBucket: "karaoke-djice.firebasestorage.app",
+            messagingSenderId: "812333736473",
+            appId: "1:812333736473:web:de365d955cfacafeb04088"
+        };
+
+        // Initialisation de Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Connexion explicite à l'URL exacte us-central1 de votre base de données
+        const database = firebase.app().database("https://karaoke-djice-default-rtdb.firebaseio.com");
+        const songsRef = database.ref('karaoke_queue');
+
+        let currentType = 'Solo';
+        let djPIN = localStorage.getItem('dj_pin') || '1234';
+
+        function selectType(type, element) {
+            currentType = type;
+            const buttons = document.querySelectorAll('.type-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            if(element) element.classList.add('active');
+
+            const partnerGroup = document.getElementById('partnerGroup');
+            const nameLabel = document.getElementById('nameLabel');
+            const partnerLabel = document.getElementById('partnerLabel');
+
+            if (type === 'Solo') {
+                partnerGroup.style.display = 'none';
+                nameLabel.textContent = 'Votre Prénom / Pseudo';
+            } else if (type === 'Duo') {
+                partnerGroup.style.display = 'block';
+                nameLabel.textContent = 'Chanteur 1';
+                partnerLabel.textContent = 'Chanteur 2';
+            } else {
+                partnerGroup.style.display = 'block';
+                nameLabel.textContent = 'Nom du Groupe / Leader';
+                partnerLabel.textContent = 'Noms des autres membres';
+            }
+        }
+
+        function submitForm(e) {
+            e.preventDefault();
+
+            const singerName = document.getElementById('singerName').value.trim();
+            const partnerName = document.getElementById('partnerName').value.trim();
+            const songTitle = document.getElementById('songTitle').value.trim();
+            const artistName = document.getElementById('artistName').value.trim();
+            const btn = document.getElementById('submitBtn');
+
+            btn.disabled = true;
+            btn.textContent = "Envoi en cours...";
+
+            let singerText = singerName;
+            if (currentType === 'Duo' && partnerName) {
+                singerText += ` & ${partnerName} (Duo)`;
+            } else if (currentType === 'Groupe' && partnerName) {
+                singerText += ` - ${partnerName} (Groupe)`;
+            }
+
+            const newEntry = {
+                singer: singerText,
+                song: songTitle,
+                artist: artistName,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+            };
+
+            songsRef.push(newEntry)
+                .then(() => {
+                    document.getElementById('karaokeForm').reset();
+                    selectType('Solo', document.querySelectorAll('.type-btn')[0]);
+                    const alertBox = document.getElementById('successAlert');
+                    alertBox.style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    btn.disabled = false;
+                    btn.textContent = "Envoyer mon inscription";
+
+                    setTimeout(() => {
+                        alertBox.style.display = 'none';
+                    }, 4000);
+                })
+                .catch((err) => {
+                    btn.disabled = false;
+                    btn.textContent = "Envoyer mon inscription";
+                    alert("Erreur Firebase : " + err.message);
+                });
+        }
+
+        function openDJModal() {
+            document.getElementById('djModal').style.display = 'flex';
+        }
+
+        function closeDJModal() {
+            document.getElementById('djModal').style.display = 'none';
+            document.getElementById('pinInput').value = '';
+        }
+
+        function verifyPIN() {
+            const inputPIN = document.getElementById('pinInput').value;
+            if (inputPIN === djPIN) {
+                document.getElementById('pinBox').style.display = 'none';
+                document.getElementById('djDashboard').style.display = 'flex';
+                listenToQueue();
+            } else {
+                alert('Code PIN incorrect !');
+            }
+        }
+
+        function listenToQueue() {
+            songsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                const container = document.getElementById('queueContainer');
+                
+                if (!data) {
+                    document.getElementById('countText').textContent = '0 Inscription(s)';
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-sub); font-size: 13px; margin-top: 20px;">Aucune inscription pour le moment.</p>';
+                    return;
+                }
+
+                const entries = Object.keys(data).map(key => ({
+                    firebaseKey: key,
+                    ...data[key]
+                }));
+
+                entries.sort((a, b) => a.timestamp - b.timestamp);
+
+                document.getElementById('countText').textContent = `${entries.length} Inscription(s)`;
+
+                container.innerHTML = entries.map((item, index) => `
+                    <div class="queue-item">
+                        <div class="item-info">
+                            <span class="item-singer">#${index + 1} ${item.singer} <small style="font-weight: normal; color: var(--text-sub);">(${item.time})</small></span>
+                            <span class="item-song">🎵 ${item.song}</span>
+                            <span class="item-artist">👤 ${item.artist}</span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteEntry('${item.firebaseKey}')">Supprimer</button>
+                    </div>
+                `).join('');
+            });
+        }
+
+        function deleteEntry(firebaseKey) {
+            database.ref('karaoke_queue/' + firebaseKey).remove();
+        }
+
+        function changePIN() {
+            const newPIN = prompt('Saisissez le nouveau code PIN DJ :');
+            if (newPIN && newPIN.trim().length >= 4) {
+                djPIN = newPIN.trim();
+                localStorage.setItem('dj_pin', djPIN);
+                alert('Code PIN mis à jour avec succès !');
+            } else if (newPIN) {
+                alert('Le code PIN doit contenir au moins 4 caractères.');
+            }
+        }
+    </script>
+</body>
+</html>
